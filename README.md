@@ -2,66 +2,47 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Voz para Texto</title>
+<title>Evolução de Criatura</title>
 
 <style>
 
 body{
-font-family: Arial, sans-serif;
-background: linear-gradient(135deg,#1e1e2f,#111);
-color:white;
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-height:100vh;
 margin:0;
-}
-
-.container{
-background:#1f1f1f;
-padding:30px;
-border-radius:15px;
-width:500px;
-max-width:90%;
-box-shadow:0 10px 30px rgba(0,0,0,0.5);
+font-family:Arial;
+background:#0f0f0f;
+color:white;
 text-align:center;
 }
 
-h1{
-margin-bottom:20px;
-}
-
-textarea{
-width:100%;
-height:150px;
-border:none;
-border-radius:10px;
-padding:15px;
-font-size:16px;
-resize:none;
-outline:none;
-}
-
-button{
-margin-top:15px;
-padding:12px 20px;
-font-size:16px;
-border:none;
-border-radius:8px;
-cursor:pointer;
-background:#6c5ce7;
-color:white;
-}
-
-button:hover{
-background:#5848c2;
-}
-
-.status{
+h2{
 margin-top:10px;
-font-size:14px;
-color:#aaa;
+}
+
+#ui{
+margin:10px;
+font-size:20px;
+}
+
+#game{
+width:700px;
+height:450px;
+background:#1c1c1c;
+margin:auto;
+position:relative;
+border-radius:12px;
+overflow:hidden;
+box-shadow:0 10px 30px rgba(0,0,0,0.7);
+}
+
+#player{
+position:absolute;
+font-size:28px;
+transition:0.05s;
+}
+
+.dna{
+position:absolute;
+font-size:20px;
 }
 
 </style>
@@ -69,68 +50,146 @@ color:#aaa;
 
 <body>
 
-<div class="container">
+<h2>🧬 Evolução da Criatura</h2>
 
-<h1>🎤 Voz para Texto</h1>
+<div id="ui">
+DNA: <span id="dna">0</span>
+</div>
 
-<textarea id="texto" placeholder="O que você falar vai aparecer aqui..."></textarea>
-
-<br>
-
-<button onclick="iniciar()">Começar a falar</button>
-<button onclick="parar()">Parar</button>
-
-<div class="status" id="status">Microfone parado</div>
-
+<div id="game">
+<div id="player">🐛</div>
 </div>
 
 <script>
 
-let recognition
+const player = document.getElementById("player")
+const game = document.getElementById("game")
 
-function iniciar(){
+let x = 100
+let y = 100
+let speed = 3
 
-const SpeechRecognition =
-window.SpeechRecognition ||
-window.webkitSpeechRecognition
+let dna = 0
+let nivel = 0
 
-recognition = new SpeechRecognition()
+const criaturas = ["🐛","🦎","🐺","🦁","🐉"]
 
-recognition.lang = "pt-BR"
-recognition.continuous = true
-recognition.interimResults = false
+let keys = {}
 
-recognition.onstart = () =>{
-document.getElementById("status").innerText = "🎤 Escutando..."
+document.addEventListener("keydown",e=>{
+keys[e.key]=true
+})
+
+document.addEventListener("keyup",e=>{
+keys[e.key]=false
+})
+
+function mover(){
+
+if(keys["ArrowRight"]||keys["d"]){
+x+=speed
+player.innerText="🐞"
 }
 
-recognition.onresult = (event)=>{
+if(keys["ArrowLeft"]||keys["a"]){
+x-=speed
+player.innerText="🐜"
+}
 
-let texto = ""
+if(keys["ArrowUp"]||keys["w"]){
+y-=speed
+player.innerText="🐛"
+}
 
-for(let i = event.resultIndex; i < event.results.length; i++){
+if(keys["ArrowDown"]||keys["s"]){
+y+=speed
+player.innerText="🐌"
+}
 
-texto += event.results[i][0].transcript
+if(x<0)x=0
+if(y<0)y=0
+if(x>670)x=670
+if(y>420)y=420
+
+player.style.left=x+"px"
+player.style.top=y+"px"
+
+checarDNA()
+
+requestAnimationFrame(mover)
 
 }
 
-document.getElementById("texto").value += texto + " "
+mover()
+
+function spawnDNA(){
+
+let d=document.createElement("div")
+
+d.className="dna"
+d.innerText="🧬"
+
+let dx=Math.random()*680
+let dy=Math.random()*430
+
+d.style.left=dx+"px"
+d.style.top=dy+"px"
+
+game.appendChild(d)
 
 }
 
-recognition.onerror = (event)=>{
-document.getElementById("status").innerText = "Erro: " + event.error
+setInterval(spawnDNA,1200)
+
+function checarDNA(){
+
+let dnas=document.querySelectorAll(".dna")
+
+dnas.forEach(d=>{
+
+let dx=d.offsetLeft
+let dy=d.offsetTop
+
+if(Math.abs(dx-x)<25 && Math.abs(dy-y)<25){
+
+d.remove()
+
+dna++
+
+document.getElementById("dna").innerText=dna
+
+evoluir()
+
 }
 
-recognition.start()
+})
 
 }
 
-function parar(){
+function evoluir(){
 
-if(recognition){
-recognition.stop()
-document.getElementById("status").innerText = "Microfone parado"
+if(nivel==0 && dna>=10){
+nivel=1
+player.innerText=criaturas[nivel]
+speed=3.5
+}
+
+if(nivel==1 && dna>=25){
+nivel=2
+player.innerText=criaturas[nivel]
+speed=4
+}
+
+if(nivel==2 && dna>=50){
+nivel=3
+player.innerText=criaturas[nivel]
+speed=4.5
+}
+
+if(nivel==3 && dna>=80){
+nivel=4
+player.innerText=criaturas[nivel]
+speed=5
 }
 
 }
